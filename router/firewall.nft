@@ -1,0 +1,25 @@
+table inet firewall {
+
+    chain forward {
+        type filter hook forward priority 0;
+        policy drop;
+
+        # Allow replies to authorized connections
+        ct state established,related accept
+
+        # Trusted -> IoT
+        ip saddr 10.10.0.0/24 ip daddr 10.20.0.0/24 counter log group 1 prefix "FIREWALL_ALLOWED: " accept
+
+        # Trusted -> Security
+        ip saddr 10.10.0.0/24 ip daddr 10.30.0.0/24 counter log group 1 prefix "FIREWALL_ALLOWED: " accept
+
+        # Trusted -> Private
+        ip saddr 10.10.0.0/24 ip daddr 10.50.0.0/24 counter log group 1 prefix "FIREWALL_ALLOWED: " accept
+
+        # Security -> Private
+        ip saddr 10.30.0.0/24 ip daddr 10.50.0.0/24 counter log group 1 prefix "FIREWALL_ALLOWED: " accept
+
+        # Log and block unauthorized packets
+        counter log group 1 prefix "FIREWALL_BLOCKED: " drop
+    }
+}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel login">
+    <h2>Administrator login</h2>
+    <p class="muted">Sign in to view the device and firewall logs.</p>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <form method="POST">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <label for="username">Username</label>
+        <input id="username" name="username" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button type="submit">Sign in</button>
+    </form>
+</section>
+{% endblock %}

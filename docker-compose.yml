@@ -1,0 +1,251 @@
+x-smtp-environment: &smtp-environment
+  SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_SECURITY: ${SMTP_SECURITY:-starttls}
+  SMTP_USERNAME: ${SMTP_USERNAME:-anto.portelance@gmail.com}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM: ${SMTP_FROM:-anto.portelance@gmail.com}
+
+services:
+
+  router:
+    build:
+      context: ./router
+    container_name: router
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5006:5000"
+    volumes:
+      - ./config/devices_config.py:/app/devices_config.py:ro
+      - router_logs:/var/lib/router
+
+    cap_add:
+      - NET_ADMIN
+      - SYSLOG
+
+    sysctls:
+      net.ipv4.ip_forward: "1"
+
+    networks:
+      trusted:
+        ipv4_address: 10.10.0.254
+      iot:
+        ipv4_address: 10.20.0.254
+      security:
+        ipv4_address: 10.30.0.254
+      guest:
+        ipv4_address: 10.40.0.254
+      private:
+        ipv4_address: 10.50.0.254
+
+  laptop:
+    build:
+      context: .
+      dockerfile: laptop/Dockerfile
+    environment:
+      <<: *smtp-environment
+      AUDIT_URL: http://10.10.0.254:5000/api/events
+    container_name: laptop
+    restart: unless-stopped
+    ports:
+      - "5005:5000"
+    volumes:
+      - ./config/devices_config.py:/app/devices_config.py:ro
+      - laptop_audit:/var/lib/device-audit
+    command:
+      - sh
+      - -ec
+      - |
+        for network in 10.20.0.0/24 10.30.0.0/24 10.40.0.0/24 10.50.0.0/24; do
+          ip route replace "$$network" via 10.10.0.254
+        done
+        exec python /app/app.py
+    cap_add:
+      - NET_ADMIN
+    networks:
+      trusted:
+        ipv4_address: 10.10.0.10
+
+
+  SmartTV:
+    image: smart-home-security-smarttv
+    build:
+      context: .
+      dockerfile: smartTV/Dockerfile
+    environment:
+      AUDIT_URL: http://10.20.0.254:5000/api/events
+    container_name: SmartTV
+    restart: unless-stopped
+    ports:
+      - "5002:5000"
+    volumes:
+      - ./config/devices_config.py:/app/devices_config.py:ro
+      - smarttv_audit:/var/lib/device-audit
+    command:
+      - sh
+      - -ec
+      - |
+        for network in 10.10.0.0/24 10.30.0.0/24 10.40.0.0/24 10.50.0.0/24; do
+          ip route replace "$$network" via 10.20.0.254
+        done
+        exec python /app/app.py
+    cap_add:
+      - NET_ADMIN
+    networks:
+      iot:
+        ipv4_address: 10.20.0.11
+
+
+  camera:
+    build:
+      context: .
+      dockerfile: camera/Dockerfile
+    environment:
+      <<: *smtp-environment
+      AUDIT_URL: http://10.30.0.254:5000/api/events
+    container_name: camera
+    restart: unless-stopped
+
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./config/devices_config.py:/app/devices_config.py:ro
+      - camera_audit:/var/lib/device-audit
+
+    command:
+      - sh
+      - -ec
+      - |
+        for network in 10.10.0.0/24 10.20.0.0/24 10.40.0.0/24 10.50.0.0/24; do
+          ip route replace "$$network" via 10.30.0.254
+        done
+
+        echo "Camera routes configured"
+        echo "Starting Camera backend..."
+
+        exec python /app/app.py
+
+    cap_add:
+      - NET_ADMIN
+
+    networks:
+      security:
+        ipv4_address: 10.30.0.10
+
+
+  phone_guest:
+    build:
+      context: .
+      dockerfile: phone_guest/Dockerfile
+    environment:
+      AUDIT_URL: http://10.40.0.254:5000/api/events
+  
+    container_name: phone_guest
+    restart: unless-stopped
+  
+    ports:
+      - "5003:5000"
+  
+    volumes:
+      - ./config/devices_config.py:/app/devices_config.py:ro
+      - phone_guest_audit:/var/lib/device-audit
+  
+    command:
+      - sh
+      - -ec
+      - |
+        for network in 10.10.0.0/24 10.20.0.0/24 10.30.0.0/24 10.50.0.0/24; do
+          ip route replace "$$network" via 10.40.0.254
+        done
+  
+        echo "Guest iPhone routes configured"
+        echo "Starting Guest iPhone backend..."
+  
+        exec python /app/app.py
+  
+    cap_add:
+      - NET_ADMIN
+  
+    networks:
+      guest:
+        ipv4_address: 10.40.0.10
+
+
+  nas:
+    build:
+      context: .
+      dockerfile: nas/Dockerfile
+    environment:
+      <<: *smtp-environment
+      AUDIT_URL: http://10.50.0.254:5000/api/events
+
+    container_name: nas
+    restart: unless-stopped
+
+    ports:
+      - "5004:5000"
+
+    volumes:
+      - ./config/devices_config.py:/app/devices_config.py:ro
+      - nas_audit:/var/lib/device-audit
+
+    command:
+      - sh
+      - -ec
+      - |
+        for network in 10.10.0.0/24 10.20.0.0/24 10.30.0.0/24 10.40.0.0/24; do
+          ip route replace "$$network" via 10.50.0.254
+        done
+
+        echo "NAS routes configured"
+        echo "Starting NAS backend..."
+
+        exec python /app/app.py
+
+    cap_add:
+      - NET_ADMIN
+
+    networks:
+      private:
+        ipv4_address: 10.50.0.10
+
+
+volumes:
+  router_logs:
+  laptop_audit:
+  smarttv_audit:
+  camera_audit:
+  phone_guest_audit:
+  nas_audit:
+
+networks:
+
+  trusted:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.0.0/24
+
+  iot:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.20.0.0/24
+
+  security:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.30.0.0/24
+
+  guest:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.40.0.0/24
+
+  private:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.50.0.0/24

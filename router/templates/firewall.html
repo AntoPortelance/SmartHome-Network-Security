@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+    <h2>Firewall traffic</h2>
+    <p class="muted">Last 200 lines. Allowed traffic does not imply successful authentication.</p>
+    <a href="{{ url_for('firewall') }}">Refresh</a>
+    <pre>{{ lines }}</pre>
+</section>
+{% endblock %}

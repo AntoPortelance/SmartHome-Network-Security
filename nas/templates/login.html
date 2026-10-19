@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>NAS Administration</title>
+</head>
+
+<body>
+
+    <h1>NAS Administration</h1>
+
+    {% include "auth.html" %}
+
+    {% if authenticated %}
+        <hr>
+
+        <h2>Network Test</h2>
+
+        <form method="POST" action="/ping">
+
+            <select name="ip">
+
+                {% for name, device in devices.items() %}
+                <option value="{{ device.ip }}" {% if selected_ip == device.ip %}selected{% endif %}>
+                    {{ name }} - {{ device.ip }}
+                </option>
+                {% endfor %}
+
+            </select>
+
+            <button type="submit">
+                Ping
+            </button>
+
+        </form>
+
+        {% if ping_output %}
+            <p>{{ ping_status }}</p>
+            <pre>{{ ping_output }}</pre>
+        {% endif %}
+
+
+    {% endif %}
+
+</body>
+
+</html>

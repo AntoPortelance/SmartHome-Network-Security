@@ -1,0 +1,31 @@
+{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+{% if authenticated %}
+    <p>{{ device_name }} access granted</p>
+    <form method="POST" action="{{ url_for('logout') }}">
+        <button type="submit">Logout</button>
+    </form>
+{% elif mfa_pending %}
+    <h2>Email verification</h2>
+    <p>A six-digit code was sent to your registered email address. It expires in five minutes.</p>
+    <form method="POST" action="{{ url_for('verify_mfa') }}">
+        <label for="code">Verification code</label><br>
+        <input id="code" name="code" type="text" inputmode="numeric"
+               pattern="[0-9]{6}" minlength="6" maxlength="6"
+               autocomplete="one-time-code" required autofocus>
+        <button type="submit">Verify</button>
+    </form>
+    <form method="POST" action="{{ url_for('logout') }}">
+        <button type="submit">Cancel and return to login</button>
+    </form>
+{% else %}
+    <h2>Login</h2>
+    <form method="POST" action="{{ url_for('login') }}">
+        <label for="username">Username</label><br>
+        <input id="username" name="username" type="text" autocomplete="username" required>
+        <br><br>
+        <label for="password">Password</label><br>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <br><br>
+        <button type="submit">Send verification code</button>
+    </form>
+{% endif %}

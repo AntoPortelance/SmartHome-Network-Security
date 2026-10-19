@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+    <h2>Authentication attempts</h2>
+    <p class="muted">{{ count }} matching events · {{ rows|length }} displayed · Times in UTC. Refresh to load new attempts.</p>
+    <form class="filters" method="GET">
+        <div><label for="device">Device</label><select id="device" name="device">
+            <option value="">All devices</option>
+            {% for device in devices %}<option value="{{ device }}" {% if device == selected_device %}selected{% endif %}>{{ device }}</option>{% endfor %}
+        </select></div>
+        <div><label for="result">Result</label><select id="result" name="result">
+            <option value="">All results</option>
+            {% for result in results %}<option value="{{ result }}" {% if result == selected_result %}selected{% endif %}>{{ result|replace('_', ' ') }}</option>{% endfor %}
+        </select></div>
+        <button type="submit">Filter / refresh</button>
+    </form>
+    <div class="scroll"><table>
+        <thead><tr><th>Time (UTC)</th><th>Device</th><th>Source IP</th><th>Username</th><th>Step</th><th>Result</th><th>HTTP</th></tr></thead>
+        <tbody>
+        {% for row in rows %}
+            <tr><td>{{ row.timestamp }}</td><td>{{ row.device }}</td><td>{{ row.source_ip }}</td>
+                <td>{{ row.username or '—' }}</td><td>{{ row.stage }}</td>
+                <td><span class="badge {{ row.result }}">{{ row.result|replace('_', ' ') }}</span></td><td>{{ row.status }}</td></tr>
+        {% else %}<tr><td colspan="7">No attempts match these filters.</td></tr>{% endfor %}
+        </tbody>
+    </table></div>
+    <div class="pager">
+        {% if page > 1 %}<a href="{{ url_for('index', device=selected_device, result=selected_result, page=page-1) }}">Previous</a>{% endif %}
+        <span>Page {{ page }} / {{ pages }}</span>
+        {% if page < pages %}<a href="{{ url_for('index', device=selected_device, result=selected_result, page=page+1) }}">Next</a>{% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Router — Security logs</title>
+    <style>
+        :root { color-scheme: light; font: 15px system-ui, sans-serif; color: #203047; background: #f2f5fa; }
+        body { margin: 0; }
+        header { background: #17263d; color: white; padding: 24px max(24px, calc((100vw - 1200px)/2)); }
+        h1 { font-size: 24px; margin: 0 0 6px; } header p { margin: 0; color: #becadd; }
+        main { max-width: 1200px; margin: 24px auto; padding: 0 24px; }
+        nav, .filters, .pager { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+        nav a { color: #264f87; font-weight: 600; text-decoration: none; padding: 10px 0; }
+        nav form { margin-left: auto; }
+        .panel { background: white; border: 1px solid #dce3ed; border-radius: 10px; padding: 22px; }
+        .login { max-width: 360px; margin: 60px auto; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; }
+        input, select, button { font: inherit; border: 1px solid #b8c4d6; border-radius: 5px; padding: 9px 12px; }
+        .login input { box-sizing: border-box; width: 100%; margin-bottom: 18px; }
+        button { background: #245bad; color: white; border-color: #245bad; cursor: pointer; }
+        .muted { color: #596b82; } .error { color: #a21f36; }
+        .scroll { overflow-x: auto; } table { border-collapse: collapse; width: 100%; text-align: left; }
+        th, td { border-bottom: 1px solid #e3e9f1; padding: 12px 10px; white-space: nowrap; }
+        th { color: #50617a; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 5px; background: #edf2f8; }
+        .success { background: #e0f3e9; color: #166342; }
+        .invalid_credentials, .code_rejected, .rate_limited, .error, .smtp_error { background: #fce8eb; color: #99273c; }
+        .mfa_required { background: #fff1ce; color: #795100; }
+        pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #17263d; color: #e2ecfa; padding: 20px; border-radius: 6px; font-size: 13px; }
+        .pager { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <header><h1>Smart Home Router</h1><p>Central security logs</p></header>
+    <main>
+    {% if session.get('admin') %}
+        <nav>
+            <a href="{{ url_for('index') }}">Authentication attempts</a>
+            <a href="{{ url_for('firewall') }}">Firewall traffic</a>
+            <form method="POST" action="{{ url_for('logout') }}">
+                <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+                <button type="submit">Logout</button>
+            </form>
+        </nav>
+    {% endif %}
+    {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

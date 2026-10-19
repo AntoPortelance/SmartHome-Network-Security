@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Guest iPhone</title>
+</head>
+
+<body>
+
+    <h1>Guest iPhone</h1>
+
+    <h2>Login</h2>
+
+    <form method="POST" action="/">
+
+        <label>Username</label>
+        <br>
+
+        <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            required>
+
+        <br><br>
+
+        <label>Password</label>
+        <br>
+
+        <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required>
+
+        <br><br>
+
+        <button type="submit">
+            Login
+        </button>
+
+    </form>
+
+    {% if error %}
+        <p>{{ error }}</p>
+    {% endif %}
+
+    {% if success %}
+        <p>{{ success }}</p>
+    {% endif %}
+
+</body>
+
+</html>
